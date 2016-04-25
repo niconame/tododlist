@@ -1,60 +1,103 @@
-
-<!DOCTYPE html>
 <html>
-	<head>
-		<title>ToＭorrow List</title>
-		<meta charset="utf8" />
-		<link rel="stylesheet" href="./asset/css/style.css">
-		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
-		<script src="https://code.jquery.com/jquery-2.2.3.min.js" integrity="sha256-a23g1Nt4dtEYOj7bR+vTu7+T8VP13humZFBJNIYoEJo=" crossorigin="anonymous"></script>
-		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
-	</head>
-	<body>
-		<div id="wrapper" class="container">
-			<div class="jumbotron text-center">
-				<h1 class="text-center">ToＭorrow List</h1>
-				<iframe src="https://ghbtns.com/github-btn.html?user=ChuCooList&repo=demo&type=star&count=true" frameborder="0" scrolling="0" width="80px" height="20px"></iframe>
-			</div>
+<head>
+  <script src="https://code.jquery.com/jquery-2.2.3.min.js" integrity="sha256-a23g1Nt4dtEYOj7bR+vTu7+T8VP13humZFBJNIYoEJo=" crossorigin="anonymous"></script>
+</head>
+<body>
+</body>
+<h1>title</h1>
+<h3>ListName</h3>
+<input type="text" placeholder="listName" id="listName"/>
+<button id="btn_setList" name="btn_setList">go !</button>
+<input type="text" placeholder="new task" id="addTask"/>
+<button id="btn_addTask" name="btn_addTask">add it !</button>
 
-			<div class="row">
-							<div class="col-lg-6 col-md-offset-3">
-								<div class="input-group">
-									<input type="text" class="form-control" placeholder="select a list name">
-									<span class="input-group-btn">
-										<button class="btn btn-default" type="button">Do!</button>
-									</span>
-								</div><!-- /input-group -->
-							</div><!-- /.col-lg-6 -->
-			</div><!-- /.row -->
-			<div class="row">
-				<div class="col-lg-6 col-md-offset-3">
-					<div class="input-group">
-						<input type="text" class="form-control" placeholder="add a new list">
-						<span class="input-group-btn">
-							<button class="btn btn-default" type="button">Add</button>
-						</span>
-					</div><!-- /input-group -->
-				</div><!-- /.col-lg-6 -->
-			</div><!-- /.row -->
+<table id="table_tasks">
+  <tr>
+    <th>task</th>
+    <th>status</th>
+    <th>delete</th>
+  </tr>
 
-			<div class="col-md-6 col-md-offset-3">
-  					<table id="todoList" class="table table-hover">
-  						<thead>
-  							<tr><th>status</th><th>To Do</th></tr>
-  						</thead>
-  						<tbody>
-  							<tr class="tasks">
-  								<td class="taskStatus">
-  									<button type="button" class="btn btn-default btn-status">Done</button>
-  								</td>
-  								<td class="taskName">
-											need to sleep.
-  									<span class="glyphicon glyphicon-remove btn-del pull-right" aria-hidden="true"></span>
-  								</td>
-  							</tr>
-  						</tbody>
-  					</table>
-  				</div>
-  			</div>
-	</body>
+</table>
+<script>
+  $('#btn_setList').on('click', function() {
+    $.ajax({
+      url: 'https://richegg.top/lists',
+      type: 'post',
+      data: {
+        listName: $('#listName').val()
+      },
+      dataType: 'json',
+      success: function(data) {
+        console.log(data);
+        $('#table_tasks tr:not(:first)').remove();
+        data.tasks.forEach(function(task){
+          $('#table_tasks').append(
+            '<tr id='+task.id+'>'+
+              '<td>' + task.text + '</td>' +
+              '<td>' + task.isDone + '</td>'+
+              '<td><button data-id='+task.id+' class="btn_delTask" name="btn_delTask">delete it</button></td>' +
+            '</tr>'
+          );
+        })
+      },
+			error: function(jqXHR) {
+				console.dir(jqXHR);
+			}
+    });
+  });
+
+  $('#btn_addTask').on('click', function() {
+    var text = $('#addTask').val();
+    console.log(text);
+    $.ajax({
+      url: 'https://richegg.top/tasks',
+				type: 'post',
+				dataType: 'json',
+				contentType: "application/json; charset=utf-8",
+				data: JSON.stringify({
+					text
+				}),
+				xhrFields: {
+					withCredentials: true
+				},
+				crossDomain: true,
+        success: function(data) {
+        console.log(data);
+        $('#table_tasks').append(
+          '<tr><td>' + data.text + '</td>' +
+          '<td>' + data.isDone + '</td></tr>'
+        );
+      },
+      error: function(jqXHR) {
+        console.dir(jqXHR);
+      }
+    });
+  });
+
+  $('#table_tasks').on('click','.btn_delTask', function() {
+    console.log(123);
+    var deleteid = $(this).attr("data-id");
+    var url = 'https://richegg.top/tasks/' + deleteid;
+    console.log(url);
+    $.ajax({
+      url: `https://richegg.top/tasks/${deleteid}`,
+			type: 'delete',
+			dataType: 'json',
+			contentType: "application/json; charset=utf-8",
+			xhrFields: {
+				withCredentials: true
+			},
+			crossDomain: true,
+      success: function(data) {
+        console.log('success');
+      },
+      error: function(jqXHR) {
+        console.log('error');
+        console.dir(jqXHR);
+      }
+    });
+  });
+
+</script>
 </html>
